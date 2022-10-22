@@ -16,7 +16,7 @@ const articlesOfArea = articles.reduce((prev, val) => {
 const maxArticlesOfAreas = Object.values(articlesOfArea).reduce((prev, val) => val.length > prev ? val.length : prev, 0);
 
 function getOpacityByArticleCount(cnt) {
-    let val = maxArticlesOfAreas / cnt;
+    let val = cnt / maxArticlesOfAreas;
     if (isNaN(val) || !isFinite(val)) val = 0;
     return val;
 }
@@ -38,7 +38,7 @@ async function main() {
         },
         onEachFeature: function (feature, layer) {
             const articlesForArea = articlesOfArea[feature.properties.name] || [];
-            //if (articlesForArea.length) debugger;
+            if (articlesForArea.length) debugger;
             const opacity = getOpacityByArticleCount(articlesForArea.length);
             layer.setStyle({fillColor: 'red', fillOpacity: opacity, opacity: opacity});
             layer.bindPopup(feature.properties.name + '<BR>' + articlesForArea.length + ' 記事');
