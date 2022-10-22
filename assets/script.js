@@ -10,7 +10,7 @@ const articles = NHK_ARTICLES.split('\n').map(v => v.split(',')).map(v => ({
 
 // { '都道府県': Article }
 const articlesOfArea = articles.reduce((prev, val) => {
-    prev[val.areaString] = prev[val.areaString] || []
+    prev[val.areaString] = prev[val.areaString] || [];
     prev[val.areaString].push(val);
     return prev;
 }, {});
