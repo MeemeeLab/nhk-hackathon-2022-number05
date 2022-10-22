@@ -8,11 +8,14 @@ const articles = NHK_ARTICLES.split('\n').map(v => v.split(',')).map(v => ({
     body: v[5]
 }));
 
+// { '都道府県': Article }
 const articlesOfArea = articles.reduce((prev, val) => {
     prev[val.areaString] = prev[val.areaString] || []
     prev[val.areaString].push(val);
     return prev;
 }, {});
+
+// 1都道府県で見つかった最大の記事数。 number
 const maxArticlesOfAreas = Object.values(articlesOfArea).reduce((prev, val) => val.length > prev ? val.length : prev, 0);
 
 function getOpacityByArticleCount(cnt) {
