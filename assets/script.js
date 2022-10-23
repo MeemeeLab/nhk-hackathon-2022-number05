@@ -146,11 +146,11 @@ async function main() {
         div.innerHTML =
             `<div id="legend"><span class="title">NHK記事数</span><br/>`
             + `<span class="note">NHKが公開した災害に関する記事の数です。</span>`
-            + `<div style="opacity: 50%">~ 50</div>`
-            + `<div style="opacity: 30%">~ 30</div>`
-            + `<div style="opacity: 20%">~ 20</div>`
-            + `<div style="opacity: 10%">~ 10</div>`
-            + `<div style="opacity:  5%">~ 5</div>`
+            + `<div style="opacity: 100%">~ 50</div>`
+            + `<div style="opacity: 60%">~ 30</div>`
+            + `<div style="opacity: 40%">~ 20</div>`
+            + `<div style="opacity: 20%">~ 10</div>`
+            + `<div style="opacity: 10%">~ 5</div>`
             + `</div>`
         return div;
     };
