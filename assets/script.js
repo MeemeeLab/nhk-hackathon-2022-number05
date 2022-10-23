@@ -232,4 +232,3 @@ async function main() {
     // L.divOverlay({}).addTo(map);
 }
 
-document.addEventListener('DOMContentLoaded', main);
