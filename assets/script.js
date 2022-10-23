@@ -90,12 +90,13 @@ const articlesOfArea = articles.reduce((prev, val) => {
     return prev;
 }, {});
 
-// 1都道府県で見つかった最大の記事数。 number
-const maxArticlesOfAreas = Object.values(articlesOfArea).reduce((prev, val) => val.length > prev ? val.length : prev, 0);
+// // 1都道府県で見つかった最大の記事数。 number
+// const maxArticlesOfAreas = Object.values(articlesOfArea).reduce((prev, val) => val.length > prev ? val.length : prev, 0);
 
 function getOpacityByArticleCount(cnt) {
-    let val = cnt / maxArticlesOfAreas;
+    let val = cnt / 50; // maxArticlesOfAreas;
     if (isNaN(val) || !isFinite(val)) val = 0;
+    if (val > 1) val = 1;
     return val;
 }
 
