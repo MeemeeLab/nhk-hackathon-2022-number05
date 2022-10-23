@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="./assets/nhk_articles.csv.js"></script>
+    <script src="./assets/area_code_map.js"></script>
+    <link rel="stylesheet" href="./assets/newslist.css">
+    <title>Document</title>
+    <script>
+        const JMA_VPTW60={};
+        var L = {
+            layerGroup: _ => _,  // dummy
+            // map: _ => _, // dummy
+        }
+    </script>
+    <script src="./assets/script.js"></script>
+</head>
+
+<body>
+    <div id="articles"></div>
+</body>
+<script>
+    +function() {
+        const renderArticles= function(articles) {
+            document.getElementById("articles").innerHTML = 
+            `<h1>${"鹿児島県"}</h1> <div>` + 
+            articles.map(article => `<div class="article">
+                    <img align="left" src="https://www3.nhk.or.jp/${article.imgUrl}">
+                    <div class="text"><h2>${article.title}</h2><br><a href="${article.url}">続きを読む</a></div>
+            </div>`).join('')
+            + '</div>';
+        }
+        renderArticles(getNHKArticlesOlderThan(new Date()));
+    }()
+</script>
+
+</html>

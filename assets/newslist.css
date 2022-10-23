@@ -1,0 +1,8 @@
+#articles div img {
+    width: 180px;
+    margin-right: 15px;
+}
+
+.article {
+    background-color: lightcyan;
+}
