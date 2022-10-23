@@ -1,20 +1,42 @@
+@import url(http://fonts.googleapis.com/earlyaccess/notosansjp.css);
+
 body {
     margin: 0px;
+    font-family: 'Noto Sans JP', sans-serif;
 }
+
 #nav {
     display: flex;
     background-color: lightgrey;
     color: black;
+    height: 60px;
 }
+
 #nav div {
     flex: auto;
     text-align: center;
-    height: 58px;
-    margin: 0px;
-    border-width: thin;
+    margin: 5px 5px 5px 0;
+    border-width: 0 0 0 thin;
     border-color: grey;
     border-style: solid;
     width: 100%;
+    padding: 2px;
+}
+#nav div.selected {
+    background-color: grey;
+    color: white;
+}
+
+#nav div:hover {
+    color: blue;
+}
+
+#nav .note {
+    font-size: 9pt;
+}
+
+#nav .title {
+    font-size: 12pt;
 }
 
 #legend {
