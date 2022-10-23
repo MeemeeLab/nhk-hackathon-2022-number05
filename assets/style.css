@@ -1,9 +1,69 @@
+@import url(http://fonts.googleapis.com/earlyaccess/notosansjp.css);
+
+body {
+    margin: 0px;
+    font-family: 'Noto Sans JP', sans-serif;
+}
+
+#nav {
+    display: flex;
+    background-color: lightgrey;
+    color: black;
+    height: 60px;
+}
+
+#nav div {
+    flex: auto;
+    text-align: center;
+    margin: 5px 5px 5px 0;
+    border-width: 0 0 0 thin;
+    border-color: grey;
+    border-style: solid;
+    width: 100%;
+    padding: 2px;
+}
+#nav div.selected {
+    background-color: grey;
+    color: white;
+}
+
+#nav div:hover {
+    color: blue;
+}
+
+#nav .note {
+    font-size: 9pt;
+}
+
+#nav .title {
+    font-size: 12pt;
+}
+
+#legend {
+    text-align: center;
+    background-color: white;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    width: 240px;
+    font-size: large;
+}
+
+#legend .note {
+    font-size: 4pt;
+}
+
+#legend div {
+    background-color: red;
+    margin-top: 5px;
+    color: white;
+}
+
 #map {
     position: absolute;
-    top: 0;
+    top: 60px;
     left: 0;
     width: 100%;
-    height: 100%;
+    height:         calc(100% - 60px);
 }
 .dateTimeBox {
     position: absolute;
