@@ -41,7 +41,7 @@ function renderVPTW60(map, vptw60Array) {
             const areaElm = v.querySelector('Report Body MeteorologicalInfos MeteorologicalInfo Item Area');
             const latLngStr = areaElm.querySelector('Circle BasePoint[type="中心位置（度）"]').innerHTML;
             const [_, lat, __, lng] = latLngStr.match(/\+([+-]?([0-9]*[.])?[0-9]+)\+([+-]?([0-9]*[.])?[0-9]+)\//);
-            return [parseInt(lat), parseInt(lng)];
+            return [parseFloat(lat), parseFloat(lng)];
         });
         L.polyline(latLngArray, {
             color: 'white',
@@ -69,7 +69,7 @@ function renderVPTW60(map, vptw60Array) {
         const [_, lat, __, lng] = latLngStr.match(/\+([+-]?([0-9]*[.])?[0-9]+)\+([+-]?([0-9]*[.])?[0-9]+)\//);
         const axes = Array.from(areaElm.querySelectorAll('Circle Axes Axis'));
         const axes0Radius = ifIsNaN(parseInt(axes[0].querySelector('Radius[unit="km"]').innerHTML), null);
-        if (axes0Radius) L.circle([parseInt(lat), parseInt(lng)], {
+        if (axes0Radius) L.circle([parseFloat(lat), parseFloat(lng)], {
             radius: axes0Radius * 1000,
             fillColor: 'yellow',
             fillOpacity: 0.5,
