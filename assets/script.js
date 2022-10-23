@@ -1,14 +1,18 @@
 const articles = NHK_ARTICLES.split('\n').map(v => v.split(',')).map(v => ({
-    dateTime: new Date(v[0]),
-    areaCode: parseInt(v[1]),
-    areaString: AREA_CODE_MAP[parseInt(v[1])],
-    thumbnail: v[2],
-    video: v[3],
+    nhkId: v[1],
+    dateTime: new Date(v[2]),
+    areaCodes: v[3].split('.').map(code => parseInt(code)),
+    areaStrings: v[3].split('.').map(code => AREA_CODE_MAP[parseInt(code)]),
     title: v[4],
-    body: v[5]
+    category: v[5],
+    imgUrl: v[6],
+    vidUrl: v[7],
+    VidDuration: parseInt(v[8])
 }));
 
 const all_VPTW60 = Object.values(JMA_VPTW60).map(v => new DOMParser().parseFromString(v, 'text/xml'));
+
+const geoJsonLayers = [];
 
 const ifIsNaN = (value, def) => isNaN(value) ? def : value;
 
@@ -77,16 +81,24 @@ function renderVPTW60(map, vptw60Array) {
             color: 'yellow',
         }).bindPopup(typhoonName).addTo(map);
     }
+
+    geoJsonLayers.forEach(v => v.bringToFront());
 }
 
 function getVPTW60OlderThan(dateTime) {
     return all_VPTW60.filter(v => new Date(v.querySelector('Report Head ReportDateTime').innerHTML) <= dateTime);
 }
+function getNHKArticlesOlderThan(dateTime, areaString) {
+    const articles = articlesOfArea[areaString];
+    return articles.filter(v => v.dateTime <= dateTime);
+}
 
 // { '都道府県': Article }
 const articlesOfArea = articles.reduce((prev, val) => {
-    prev[val.areaString] = prev[val.areaString] || [];
-    prev[val.areaString].push(val);
+    val.areaStrings.forEach((areaString) => {
+        prev[areaString] = prev[areaString] || [];
+        prev[areaString].push(val);
+    });
     return prev;
 }, {});
 
@@ -116,6 +128,7 @@ async function main() {
             weight: 2
         },
         onEachFeature: function (feature, layer) {
+            geoJsonLayers.push(layer);
             const articlesForArea = articlesOfArea[feature.properties.name] || [];
             // if (articlesForArea.length) debugger;
             const opacity = getOpacityByArticleCount(articlesForArea.length);
