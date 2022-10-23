@@ -5,7 +5,7 @@ const articles = NHK_ARTICLES.split('\n').map(v => v.split(',')).map(v => ({
     areaStrings: v[3].split('.').map(code => AREA_CODE_MAP[parseInt(code)]),
     title: v[4],
     category: v[5],
-    text: v[6],
+    url: v[6],
     imgUrl: v[7],
     vidUrl: v[8],
     VidDuration: parseInt(v[9])

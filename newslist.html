@@ -26,8 +26,12 @@
     +function() {
         const renderArticles= function(articles) {
             document.getElementById("articles").innerHTML = 
-            `<h1>鹿児島県</h1>` + 
-            articles.map(article => `<img src="https://www3.nhk.or.jp/${article.imgUrl}">${article.title}`).join('<br/>');
+            `<h1>${"鹿児島県"}</h1> <div>` + 
+            articles.map(article => `<div class="article">
+                    <img align="left" src="https://www3.nhk.or.jp/${article.imgUrl}">
+                    <div class="text"><h2>${article.title}</h2><br><a href="${article.url}">続きを読む</a></div>
+            </div>`).join('')
+            + '</div>';
         }
         renderArticles(getNHKArticlesOlderThan(new Date()));
     }()
