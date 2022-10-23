@@ -8,9 +8,36 @@ const articles = NHK_ARTICLES.split('\n').map(v => v.split(',')).map(v => ({
     body: v[5]
 }));
 
+const all_VPTW60 = Object.values(JMA_VPTW60).map(v => new DOMParser().parseFromString(v, 'text/xml'));
+
+function renderVPTW60(map, vptw60Array) {
+    for (const vptw60 of vptw60Array) {
+        const centerElm = Array.from(vptw60.querySelector('Report Body MeteorologicalInfos MeteorologicalInfo DateTime[type="実況"]').parentElement.querySelectorAll('Item Kind Property Type')).find(v => v.innerHTML === '中心').parentElement;
+        const nameElm = Array.from(vptw60.querySelector('Report Body MeteorologicalInfos MeteorologicalInfo DateTime[type="実況"]').parentElement.querySelectorAll('Item Kind Property Type')).find(v => v.innerHTML === '呼称').parentElement;
+        let typhoonName = '';
+        if (nameElm.querySelector('TyphoonNamePart NameKana').innerHTML !== '') {
+            typhoonName += `${nameElm.querySelector('TyphoonNamePart NameKana').innerHTML} (${nameElm.querySelector('TyphoonNamePart Name').innerHTML})`;
+        } else {
+            typhoonName += `無名`;
+        }
+        if (nameElm.querySelector('TyphoonNamePart Remark').innerHTML !== '') {
+            typhoonName += `<BR>${nameElm.querySelector('TyphoonNamePart Remark').innerHTML}`;
+        }
+        const latLngStr = centerElm.querySelector('CenterPart Coordinate[type="中心位置（度）"]').innerHTML;
+        const [_, lat, __, lng] = latLngStr.match(/\+([+-]?([0-9]*[.])?[0-9]+)\+([+-]?([0-9]*[.])?[0-9]+)\//);
+        L.circle([parseInt(lat), parseInt(lng)], {
+            radius: 100000
+        }).bindPopup(typhoonName).addTo(map);
+    }
+}
+
+function getVPTW60OlderThan(dateTime) {
+    return all_VPTW60.filter(v => new Date(v.querySelector('Report Head ReportDateTime').innerHTML) <= dateTime);
+}
+
 // { '都道府県': Article }
 const articlesOfArea = articles.reduce((prev, val) => {
-    prev[val.areaString] = prev[val.areaString] || []
+    prev[val.areaString] = prev[val.areaString] || [];
     prev[val.areaString].push(val);
     return prev;
 }, {});
@@ -25,7 +52,7 @@ function getOpacityByArticleCount(cnt) {
 }
 
 async function main() {
-    const map = L.map('map').setView([36.2048, 138.2529], 6);
+    const map = L.map('map', { zoomControl: false }).setView([36.2048, 138.2529], 6);
     L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: '&copy; <a href="http://gsi.go.jp/">地理院タイル</a>'
@@ -41,12 +68,13 @@ async function main() {
         },
         onEachFeature: function (feature, layer) {
             const articlesForArea = articlesOfArea[feature.properties.name] || [];
-            if (articlesForArea.length) debugger;
+            // if (articlesForArea.length) debugger;
             const opacity = getOpacityByArticleCount(articlesForArea.length);
             layer.setStyle({fillColor: 'red', fillOpacity: opacity, opacity: opacity});
             layer.bindPopup(feature.properties.name + '<BR>' + articlesForArea.length + ' 記事');
         }
     }).addTo(map);
+    renderVPTW60(map, all_VPTW60);
     // TODO
     L.control.scale({ maxWidth: 200, position: 'topleft', imperial: false }).addTo(map);
 

@@ -43,3 +43,20 @@ body {
     width: 100%;
     height:         calc(100% - 60px);
 }
+.dateTimeBox {
+    position: absolute;
+    top: 3%;
+    left: 3%;
+    width: 300px;
+    height: 100px;
+    z-index: 1000;
+    background: white;
+}
+#dateTimeText {
+    margin: 0;
+    vertical-align: middle;
+    text-align: center;
+    width: 100%;
+    height: 100%;
+    line-height: 430%; /* TODO: make this smart */
+}
