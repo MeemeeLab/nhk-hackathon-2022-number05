@@ -5,9 +5,10 @@ const articles = NHK_ARTICLES.split('\n').map(v => v.split(',')).map(v => ({
     areaStrings: v[3].split('.').map(code => AREA_CODE_MAP[parseInt(code)]),
     title: v[4],
     category: v[5],
-    imgUrl: v[6],
-    vidUrl: v[7],
-    VidDuration: parseInt(v[8])
+    text: v[6],
+    imgUrl: v[7],
+    vidUrl: v[8],
+    VidDuration: parseInt(v[9])
 }));
 
 const all_VPTW60 = Object.values(JMA_VPTW60).map(v => new DOMParser().parseFromString(v, 'text/xml'));

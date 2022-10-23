@@ -27,7 +27,7 @@
         const renderArticles= function(articles) {
             document.getElementById("articles").innerHTML = 
             `<h1>鹿児島県</h1>` + 
-            articles.map(article => `${article.title}`).join('<br/>');
+            articles.map(article => `<img src="https://www3.nhk.or.jp/${article.imgUrl}">${article.title}`).join('<br/>');
         }
         renderArticles(getNHKArticlesOlderThan(new Date()));
     }()
