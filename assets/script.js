@@ -16,6 +16,56 @@ const geoJsonLayers = [];
 
 const ifIsNaN = (value, def) => isNaN(value) ? def : value;
 
+const firstDateTime = new Date('2022-09-13 00:01').getTime();
+const additionDateTimePerIter = new Date('Thu, 01 Jan 1970 03:00:00 GMT').getTime();
+let currentTime = new Date('2022-09-13 00:01');
+let isPlaying = false;
+let currentMap = null;
+let layers = L.layerGroup([]);
+
+function getTime(iter) {
+    return new Date(firstDateTime + (additionDateTimePerIter * iter));
+}
+
+function onTimeSliderChange() {
+    const timeslider = document.getElementById('timeslider');
+    currentTime = getTime(parseInt(timeslider.value));
+    rerender(currentMap);
+}
+
+function playNextFrame() {
+    if (!isPlaying) return;
+    const timeslider = document.getElementById('timeslider');
+    const iter = parseInt(timeslider.value) + 1;
+    timeslider.value = iter;
+    onTimeSliderChange.call();
+    setTimeout(playNextFrame, 500);
+}
+
+function onTimeSliderPlay() {
+    const timeSliderButton = document.getElementById('timeSliderButton');
+    if (!isPlaying) {
+        isPlaying = true;
+        timeSliderButton.innerText = 'STOP';
+        playNextFrame();
+    } else {
+        timeSliderButton.innerText = 'PLAY';
+        isPlaying = false;
+    }
+}
+
+function rerender(map) {
+    // Remove all layers
+    layers.getLayers().forEach(v => {
+        map.removeLayer(v);
+        layers.removeLayer(v);
+    });
+
+    renderNHKArticles(map, currentTime);
+    renderVPTW60(map, getVPTW60OlderThan(currentTime));
+    renderDateTimeBox();
+}
+
 function renderVPTW60(map, vptw60Array) {
     // { [EventID]: { array, latest } }
     let typhoons = {};
@@ -52,7 +102,7 @@ function renderVPTW60(map, vptw60Array) {
             weight: 3,
             opacity: 1,
             smoothFactor: 1
-        }).addTo(map);
+        }).addTo(map).addTo(layers);
     }
 
     // Draw current circle
@@ -79,17 +129,30 @@ function renderVPTW60(map, vptw60Array) {
             fillOpacity: 0.5,
             stroke: true,
             color: 'yellow',
-        }).bindPopup(typhoonName).addTo(map);
+        }).bindPopup(typhoonName).addTo(map).addTo(layers);
     }
 
-    geoJsonLayers.forEach(v => v.bringToFront());
+    geoJsonLayers.forEach(({ layer }) => layer.bringToFront());
+}
+function renderNHKArticles(map, dateTime) {
+    geoJsonLayers.forEach(({ feature, layer }) => {
+        const articlesForArea = getNHKArticlesOlderThan(dateTime, feature.properties.name);
+        // if (articlesForArea.length) debugger;
+        const opacity = getOpacityByArticleCount(articlesForArea.length);
+        layer.setStyle({fillColor: 'red', fillOpacity: opacity, opacity: opacity});
+        layer.bindPopup(feature.properties.name + '<BR>' + articlesForArea.length + ' 記事');
+    });
+}
+function renderDateTimeBox() {
+    const dateTimeStr = `${currentTime.getFullYear()}-${(currentTime.getMonth()+1).toString().padStart(2, '0')}-${(currentTime.getDate()).toString().padStart(2, '0')} ${(currentTime.getHours()).toString().padStart(2, '0')}:${(currentTime.getMinutes()).toString().padStart(2, '0')}`
+    document.getElementById('dateTimeText').innerText = dateTimeStr;
 }
 
 function getVPTW60OlderThan(dateTime) {
     return all_VPTW60.filter(v => new Date(v.querySelector('Report Head ReportDateTime').innerHTML) <= dateTime);
 }
 function getNHKArticlesOlderThan(dateTime, areaString) {
-    const articles = articlesOfArea[areaString];
+    const articles = articlesOfArea[areaString] || [];
     return articles.filter(v => v.dateTime <= dateTime);
 }
 
@@ -128,16 +191,12 @@ async function main() {
             weight: 2
         },
         onEachFeature: function (feature, layer) {
-            geoJsonLayers.push(layer);
-            const articlesForArea = articlesOfArea[feature.properties.name] || [];
-            // if (articlesForArea.length) debugger;
-            const opacity = getOpacityByArticleCount(articlesForArea.length);
-            layer.setStyle({fillColor: 'red', fillOpacity: opacity, opacity: opacity});
-            layer.bindPopup(feature.properties.name + '<BR>' + articlesForArea.length + ' 記事');
+            geoJsonLayers.push({ feature, layer });
         }
     }).addTo(map);
-    renderVPTW60(map, getVPTW60OlderThan(new Date('2022-09-19 23:07')));
-    // TODO
+
+    rerender(map);
+
     L.control.scale({ maxWidth: 200, position: 'topleft', imperial: false }).addTo(map);
 
     var legend = L.control({ position: 'bottomright' });
@@ -159,7 +218,7 @@ async function main() {
     var timeslider = L.control({ position: 'bottomleft' });
     timeslider.onAdd = function (map) {
         const div = L.DomUtil.create('div', 'info timeslider');
-        div.innerHTML = `<input id="timeslider" type="range" style="width: 500px"><label for="timeslider">time</label>`;
+        div.innerHTML = `<input id="timeslider" type="range" style="width: 500px" oninput="onTimeSliderChange()" value="0"><button onclick="onTimeSliderPlay()" id="timeSliderButton">PLAY</button>`;
         L.DomEvent.on(div, 'click', L.DomEvent.stopPropagation);
         L.DomEvent.on(div, 'dblclick', L.DomEvent.stopPropagation);
         L.DomEvent.on(div, 'mousemove', L.DomEvent.stopPropagation);
@@ -167,6 +226,8 @@ async function main() {
         return div;
     };
     timeslider.addTo(map);
+
+    currentMap = map;
 
     // L.divOverlay({}).addTo(map);
 }
