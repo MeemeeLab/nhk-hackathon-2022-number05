@@ -10,10 +10,52 @@ const articles = NHK_ARTICLES.split('\n').map(v => v.split(',')).map(v => ({
 
 const all_VPTW60 = Object.values(JMA_VPTW60).map(v => new DOMParser().parseFromString(v, 'text/xml'));
 
+const ifIsNaN = (value, def) => isNaN(value) ? def : value;
+
 function renderVPTW60(map, vptw60Array) {
+    // { [EventID]: { array, latest } }
+    let typhoons = {};
+
     for (const vptw60 of vptw60Array) {
-        const centerElm = Array.from(vptw60.querySelector('Report Body MeteorologicalInfos MeteorologicalInfo DateTime[type="実況"]').parentElement.querySelectorAll('Item Kind Property Type')).find(v => v.innerHTML === '中心').parentElement;
-        const nameElm = Array.from(vptw60.querySelector('Report Body MeteorologicalInfos MeteorologicalInfo DateTime[type="実況"]').parentElement.querySelectorAll('Item Kind Property Type')).find(v => v.innerHTML === '呼称').parentElement;
+        const eventId = vptw60.querySelector('Report Head EventID').innerHTML;
+        typhoons[eventId] = typhoons[eventId] || { array: [], latest: null };
+
+        typhoons[eventId].array.push(vptw60);
+        if (!typhoons[eventId].latest || parseInt(typhoons[eventId].latest.querySelector('Report Head Serial').innerHTML) < parseInt(vptw60.querySelector('Report Head Serial').innerHTML)) {
+            typhoons[eventId].latest = vptw60;
+        }
+    }
+
+    // Sort
+    for (const i of Object.keys(typhoons)) {
+        const typhoon = typhoons[i];
+        typhoon.array.sort((a, b) => {
+            return parseInt(a.querySelector('Report Head Serial').innerHTML) - parseInt(b.querySelector('Report Head Serial').innerHTML);
+        })
+    }
+
+    // Draw lines
+    for (const i of Object.keys(typhoons)) {
+        const typhoon = typhoons[i];
+        const latLngArray = typhoon.array.map((v) => {
+            const areaElm = v.querySelector('Report Body MeteorologicalInfos MeteorologicalInfo Item Area');
+            const latLngStr = areaElm.querySelector('Circle BasePoint[type="中心位置（度）"]').innerHTML;
+            const [_, lat, __, lng] = latLngStr.match(/\+([+-]?([0-9]*[.])?[0-9]+)\+([+-]?([0-9]*[.])?[0-9]+)\//);
+            return [parseInt(lat), parseInt(lng)];
+        });
+        L.polyline(latLngArray, {
+            color: 'white',
+            weight: 3,
+            opacity: 1,
+            smoothFactor: 1
+        }).addTo(map);
+    }
+
+    // Draw current circle
+    for (const i of Object.keys(typhoons)) {
+        const typhoon = typhoons[i];
+        const areaElm = typhoon.latest.querySelector('Report Body MeteorologicalInfos MeteorologicalInfo Item Area');
+        const nameElm = Array.from(typhoon.latest.querySelector('Report Body MeteorologicalInfos MeteorologicalInfo DateTime[type="実況"]').parentElement.querySelectorAll('Item Kind Property Type')).find(v => v.innerHTML === '呼称').parentElement;
         let typhoonName = '';
         if (nameElm.querySelector('TyphoonNamePart NameKana').innerHTML !== '') {
             typhoonName += `${nameElm.querySelector('TyphoonNamePart NameKana').innerHTML} (${nameElm.querySelector('TyphoonNamePart Name').innerHTML})`;
@@ -23,10 +65,16 @@ function renderVPTW60(map, vptw60Array) {
         if (nameElm.querySelector('TyphoonNamePart Remark').innerHTML !== '') {
             typhoonName += `<BR>${nameElm.querySelector('TyphoonNamePart Remark').innerHTML}`;
         }
-        const latLngStr = centerElm.querySelector('CenterPart Coordinate[type="中心位置（度）"]').innerHTML;
+        const latLngStr = areaElm.querySelector('Circle BasePoint[type="中心位置（度）"]').innerHTML;
         const [_, lat, __, lng] = latLngStr.match(/\+([+-]?([0-9]*[.])?[0-9]+)\+([+-]?([0-9]*[.])?[0-9]+)\//);
-        L.circle([parseInt(lat), parseInt(lng)], {
-            radius: 100000
+        const axes = Array.from(areaElm.querySelectorAll('Circle Axes Axis'));
+        const axes0Radius = ifIsNaN(parseInt(axes[0].querySelector('Radius[unit="km"]').innerHTML), null);
+        if (axes0Radius) L.circle([parseInt(lat), parseInt(lng)], {
+            radius: axes0Radius * 1000,
+            fillColor: 'yellow',
+            fillOpacity: 0.5,
+            stroke: true,
+            color: 'yellow',
         }).bindPopup(typhoonName).addTo(map);
     }
 }
@@ -74,7 +122,7 @@ async function main() {
             layer.bindPopup(feature.properties.name + '<BR>' + articlesForArea.length + ' 記事');
         }
     }).addTo(map);
-    renderVPTW60(map, all_VPTW60);
+    renderVPTW60(map, getVPTW60OlderThan(new Date('2022-09-19 23:07')));
     // TODO
     L.control.scale({ maxWidth: 200, position: 'topleft', imperial: false }).addTo(map);
 
